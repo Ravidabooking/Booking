@@ -723,6 +723,16 @@ document.getElementById('addItemBtn').onclick = async () => {
 };
 
 /* ---- Hours & tables ---- */
+function updateSlotHint(row){
+  const hint = row.querySelector('.hr-slot-hint');
+  const n = Number(row.querySelector('.hr-slot').value) || 0;
+  if(n <= 0){ hint.textContent = 'minutes'; return; }
+  const h = Math.floor(n / 60), m = n % 60;
+  let readable = '';
+  if(h > 0) readable += h + (h===1?' hr':' hrs');
+  if(m > 0) readable += (h>0?' ':'') + m + ' min';
+  hint.textContent = `minutes  (${readable})`;
+}
 function loadHoursTab(){
   const el = document.getElementById('hoursList');
   el.innerHTML = WEEKDAY_NAMES.map((name, dow) => `
@@ -730,9 +740,10 @@ function loadHoursTab(){
       <div style="font-weight:700;">${name}</div>
       <div><input type="time" class="hr-open" value="12:00" style="width:100%;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;"></div>
       <div><input type="time" class="hr-close" value="23:00" style="width:100%;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;"></div>
-      <div><select class="hr-slot" style="width:100%;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;">
-        <option value="15">15 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option>
-      </select></div>
+      <div>
+        <input type="number" class="hr-slot" min="5" step="5" value="30" style="width:100%;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;">
+        <div class="hr-slot-hint" style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">minutes</div>
+      </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="hr-closed"> Closed</label>
         <button class="btn-ghost-dark hr-save">Save</button>
@@ -748,8 +759,14 @@ function loadHoursTab(){
       row.querySelector('.hr-open').value = data.open || '12:00';
       row.querySelector('.hr-close').value = data.close || '23:00';
       row.querySelector('.hr-slot').value = String(data.slotMinutes || 30);
+      updateSlotHint(row);
       row.querySelector('.hr-closed').checked = !!data.closed;
     });
+  });
+
+  el.querySelectorAll('.hr-slot').forEach(inp => {
+    updateSlotHint(inp.closest('.hours-row'));
+    inp.addEventListener('input', () => updateSlotHint(inp.closest('.hours-row')));
   });
 
   el.querySelectorAll('.hr-save').forEach(btn => {
@@ -761,6 +778,11 @@ function loadHoursTab(){
       const slotMinutes = Number(row.querySelector('.hr-slot').value);
       const closed = row.querySelector('.hr-closed').checked;
       const msg = document.getElementById('hoursMsg');
+      if(!slotMinutes || slotMinutes <= 0){
+        msg.textContent = 'Enter a valid number of minutes (e.g. 30, 120 for 2 hrs, 180 for 3 hrs).';
+        msg.className = 'msg err';
+        return;
+      }
       db.collection('rHours').doc(dow).set({ open, close, slotMinutes, closed })
         .then(() => { msg.textContent = WEEKDAY_NAMES[dow] + ' hours saved.'; msg.className = 'msg ok'; })
         .catch(err => { msg.textContent = err.message; msg.className = 'msg err'; });
