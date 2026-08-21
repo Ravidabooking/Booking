@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reserve a Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --wine-900:#3B0D14; --wine-700:#5C1620; --wine-500:#8C2233;
+    --cream-50:#FBF6EF; --cream-100:#F3E9DA; --line:#E4D6C0;
+    --ink:#241713; --ink-soft:#6B5A50;
+    --gold:#C9A24B; --gold-dark:#A9822F; --ok:#3E8A5B; --danger:#B94A34;
+    --white:#FFFFFF;
+    --shadow: 0 1px 2px rgba(59,13,20,0.08), 0 4px 14px rgba(59,13,20,0.08);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--cream-50);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Manrope',sans-serif;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  .hero{
+    background:linear-gradient(180deg, var(--wine-900) 0%, var(--wine-700) 100%);
+    color:#fff;text-align:center;padding:56px 20px 64px;
+  }
+  .hero img.logo{width:110px;height:auto;border-radius:16px;margin-bottom:18px;box-shadow:0 12px 30px rgba(0,0,0,0.35);}
+  .hero h1{font-size:2rem;margin:0 0 6px;letter-spacing:.3px;}
+  .hero p{color:rgba(255,255,255,.78);font-size:.95rem;margin:0 0 26px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:10px;border:none;font-weight:700;font-size:15px;transition:transform .08s, background .15s;}
+  .btn:active{transform:scale(0.98);}
+  .btn-gold{background:var(--gold);color:#2A1F05;}
+  .btn-gold:hover{background:var(--gold-dark);}
+  .btn-ghost{background:transparent;border:1.5px solid rgba(255,255,255,.4);color:#fff;}
+  .btn-ghost:hover{background:rgba(255,255,255,.1);}
+  .btn-sm{padding:8px 14px;font-size:13px;border-radius:8px;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  main{max-width:920px;margin:0 auto;padding:0 20px 60px;}
+  section{margin-top:-30px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:26px;margin-bottom:22px;}
+  .section-title{font-size:1.3rem;color:var(--wine-900);margin:0 0 4px;}
+  .section-sub{color:var(--ink-soft);font-size:.88rem;margin:0 0 20px;}
+
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+  .menu-card{border:1.5px solid var(--line);border-radius:12px;padding:16px;}
+  .menu-card .mname{font-weight:700;font-size:15px;color:var(--wine-900);}
+  .menu-card .mdesc{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .menu-card .mprice{font-weight:700;color:var(--gold-dark);margin-top:8px;font-size:14px;}
+
+  .party-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:6px;}
+  .party-btn{padding:12px 8px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--wine-900);}
+  .party-btn.selected{background:var(--wine-700);border-color:var(--wine-700);color:#fff;}
+
+  .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--wine-900);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;}
+  .field input, .field select, .field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:14.5px;background:var(--cream-50);color:var(--ink);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--wine-500);background:#fff;}
+
+  .slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:6px;}
+  .slot-btn{padding:10px 8px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:13px;color:var(--wine-900);display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .slot-btn:hover{border-color:var(--wine-500);}
+  .slot-btn.selected{background:var(--wine-700);border-color:var(--wine-700);color:#fff;}
+  .slot-btn.full{opacity:.4;cursor:not-allowed;}
+  .slot-btn .avail{font-size:10.5px;font-weight:600;opacity:.75;}
+  .empty-state{text-align:center;padding:26px 10px;color:var(--ink-soft);font-size:13.5px;border:1.5px dashed var(--line);border-radius:10px;}
+
+  footer{text-align:center;padding:30px 20px 50px;color:var(--ink-soft);font-size:12.5px;}
+  footer a{color:var(--wine-700);text-decoration:none;font-weight:600;}
+  .admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cream-50);border:none;cursor:pointer;margin-left:8px;vertical-align:middle;opacity:.35;}
+
+  .confirm-box{text-align:center;padding:30px 10px;}
+  .confirm-box .check{width:56px;height:56px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px;}
+
+  .msg{font-size:13px;margin-top:8px;min-height:16px;}
+  .msg.err{color:var(--danger);}
+  .msg.ok{color:var(--ok);}
+  .loading{text-align:center;padding:30px;color:var(--ink-soft);}
+  .spinner{width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--wine-500);border-radius:50%;margin:0 auto 10px;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- Admin ---------- */
+  #adminOverlay{display:none;position:fixed;inset:0;background:rgba(59,13,20,.55);z-index:100;align-items:center;justify-content:center;padding:20px;}
+  #adminOverlay.show{display:flex;}
+  .admin-login-card{background:#fff;border-radius:16px;padding:32px;max-width:360px;width:100%;}
+  .admin-login-card h3{margin:0 0 4px;color:var(--wine-900);}
+  .admin-login-card p{margin:0 0 20px;color:var(--ink-soft);font-size:13px;}
+
+  #adminPanel{display:none;position:fixed;inset:0;background:var(--cream-50);z-index:90;overflow-y:auto;}
+  #adminPanel.show{display:block;}
+  .admin-topbar{background:var(--wine-900);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .admin-topbar .brand{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}
+  .admin-tabs{display:flex;gap:2px;background:var(--wine-700);padding:0 16px;overflow-x:auto;}
+  .admin-tabs button{background:transparent;border:none;color:rgba(255,255,255,.75);padding:12px 16px;font-size:13.5px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;}
+  .admin-tabs button.active{color:#fff;border-bottom-color:var(--gold);}
+  .admin-main{max-width:900px;margin:0 auto;padding:22px 18px 60px;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:var(--shadow);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;border-left:4px solid var(--wine-500);padding-left:10px;}
+  .panel-head h2{font-size:15.5px;margin:0;color:var(--wine-900);}
+  .row-item{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;background:var(--cream-50);flex-wrap:wrap;}
+  .row-item .rmain{flex:1;min-width:160px;}
+  .row-item .rmain .t1{font-weight:700;font-size:14px;}
+  .row-item .rmain .t2{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  table.datatable{width:100%;border-collapse:collapse;font-size:13px;}
+  table.datatable th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--ink-soft);padding:8px 6px;border-bottom:2px solid var(--line);}
+  table.datatable td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .btn-danger{background:transparent;color:var(--danger);border:1.5px solid #EAC3BA;padding:6px 10px;border-radius:6px;font-size:12.5px;font-weight:700;}
+  .btn-danger:hover{background:#FBEEEB;}
+  .btn-ghost-dark{background:transparent;color:var(--wine-700);border:1.5px solid var(--line);padding:6px 10px;border-radius:6px;font-size:12.5px;font-weight:700;}
+  .btn-ghost-dark:hover{border-color:var(--wine-500);}
+  .hours-row{display:grid;grid-template-columns:90px 1fr 1fr 100px 90px;gap:8px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px;}
+  .hours-row:last-child{border-bottom:none;}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle-row .tt{font-weight:700;font-size:14px;color:var(--wine-900);}
+  .toggle-row .ts{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .switch{position:relative;width:46px;height:26px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .slider{position:absolute;inset:0;background:var(--line);border-radius:26px;transition:.15s;cursor:pointer;}
+  .switch .slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;}
+  .switch input:checked + .slider{background:var(--wine-600, var(--wine-500));}
+  .switch input:checked + .slider:before{transform:translateX(20px);}
+  @media(max-width:600px){ .hours-row{grid-template-columns:1fr;gap:6px;} }
+</style>
+</head>
+<body>
+
+<!-- ============ PUBLIC PAGE ============ -->
+<div class="hero">
+  <img class="logo" id="heroLogo" src="" alt="Restaurant" style="display:none;">
+  <h1 id="heroName">Our Restaurant</h1>
+  <p id="heroTagline">Fine dining &amp; drinks</p>
+  <a href="#booking" class="btn btn-gold">Reserve a table</a>
+</div>
+
+<main>
+  <section id="menu">
+    <div class="card">
+      <h2 class="section-title">Menu</h2>
+      <p class="section-sub">A taste of what we serve.</p>
+      <div id="menuGrid"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+    </div>
+  </section>
+
+  <section id="booking">
+    <div class="card">
+      <h2 class="section-title">Reserve a table</h2>
+      <p class="section-sub">No account needed — just a few taps.</p>
+
+      <div id="bookingFlow">
+        <div class="field">
+          <label>1. Party size</label>
+          <div class="party-grid" id="partyGrid"></div>
+        </div>
+        <div class="field" id="dateField" style="display:none;">
+          <label>2. Date</label>
+          <input type="date" id="bookDate">
+        </div>
+        <div class="field" id="slotsField" style="display:none;">
+          <label>Available times</label>
+          <div id="slotsArea"><div class="loading"><div class="spinner"></div>Checking availability…</div></div>
+        </div>
+        <div id="detailsFields" style="display:none;">
+          <div class="field"><label>Full name</label><input id="bookName" placeholder="Your name"></div>
+          <div class="field"><label>Phone number</label><input id="bookPhone" placeholder="e.g. 01xxxxxxxxx" type="tel"></div>
+          <div class="field"><label>Notes (optional)</label><textarea id="bookNotes" rows="2" placeholder="Allergies, occasion, seating preference…"></textarea></div>
+          <button class="btn btn-gold btn-block" id="submitBookingBtn">Confirm reservation</button>
+          <div class="msg" id="bookingMsg"></div>
+        </div>
+      </div>
+
+      <div id="bookingConfirm" style="display:none;" class="confirm-box">
+        <div class="check">✓</div>
+        <h3 style="margin:0 0 6px;color:var(--wine-900);">Reservation confirmed</h3>
+        <p id="confirmText" style="color:var(--ink-soft);font-size:14px;"></p>
+        <button class="btn btn-ghost-dark" id="bookAgainBtn" style="margin-top:14px;background:transparent;border:1.5px solid var(--line);color:var(--wine-700);padding:10px 18px;border-radius:8px;font-weight:700;">Book another table</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div id="footerName">Our Restaurant</div>
+  <div style="margin-top:6px;">
+    <a id="footerEmailLink" href="mailto:">info@example.com</a>
+  </div>
+  <div style="margin-top:14px;">© <span id="footerYear"></span> <span id="footerName2">Our Restaurant</span><button class="admin-dot" id="adminDotBtn" title=" "></button></div>
+</footer>
+
+<!-- ============ ADMIN LOGIN ============ -->
+<div id="adminOverlay">
+  <div class="admin-login-card">
+    <h3>Admin sign in</h3>
+    <p>Use your admin account.</p>
+    <div class="field"><label>Email</label><input id="adminEmail" type="email" placeholder="you@restaurant.com"></div>
+    <div class="field"><label>Password</label><input id="adminPassword" type="password" placeholder="••••••••"></div>
+    <button class="btn btn-gold btn-block" id="adminLoginBtn">Sign in</button>
+    <div class="msg err" id="adminLoginMsg"></div>
+    <button class="btn btn-ghost-dark btn-block" id="adminCancelBtn" style="margin-top:10px;background:transparent;border:1.5px solid var(--line);color:var(--wine-700);padding:10px;border-radius:8px;font-weight:700;">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ ADMIN PANEL ============ -->
+<div id="adminPanel">
+  <div class="admin-topbar">
+    <div class="brand">Admin</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="adminWhoName" style="font-size:13px;"></span>
+      <button class="btn btn-ghost btn-sm" id="adminLogoutBtn">Log out</button>
+      <button class="btn btn-ghost btn-sm" id="adminCloseBtn">Close</button>
+    </div>
+  </div>
+  <div class="admin-tabs" id="adminTabsNav">
+    <button data-tab="reservations" class="active">Reservations</button>
+    <button data-tab="menu">Menu</button>
+    <button data-tab="hours">Hours &amp; Tables</button>
+    <button data-tab="settings">Settings</button>
+  </div>
+  <div class="admin-main">
+    <!-- RESERVATIONS -->
+    <div id="admtab-reservations" class="admtabpanel">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Reservations</h2>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="btn-ghost-dark" id="bkPrevDay">‹</button>
+            <input type="date" id="bkDateFilter" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
+            <button class="btn-ghost-dark" id="bkNextDay">›</button>
+            <button class="btn-ghost-dark" id="bkTodayBtn">Today</button>
+          </div>
+        </div>
+        <div id="bookingsList"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <div id="admtab-menu" class="admtabpanel" style="display:none;">
+      <div class="panel">
+        <div class="panel-head"><h2>Menu items</h2></div>
+        <div id="menuAdminList"></div>
+        <div class="panel-head" style="margin-top:16px;"><h2>Add a new menu item</h2></div>
+        <div class="field"><label>Name</label><input id="newItemName" placeholder="e.g. Grilled Sea Bass"></div>
+        <div class="field"><label>Category</label>
+          <select id="newItemCategory"></select>
+        </div>
+        <div class="field"><label>Description (optional)</label><input id="newItemDesc" placeholder="Short description"></div>
+        <div class="field"><label>Price</label><input id="newItemPrice" placeholder="e.g. 350 EGP"></div>
+        <button class="btn-ghost-dark" id="addItemBtn">+ Add item</button>
+        <div class="msg" id="menuMsg"></div>
+      </div>
+    </div>
+
+    <!-- HOURS & TABLES -->
+    <div id="admtab-hours" class="admtabpanel" style="display:none;">
+      <div class="panel">
+        <div class="panel-head"><h2>Opening hours</h2></div>
+        <div id="hoursList"></div>
+        <div class="msg" id="hoursMsg"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Table capacity</h2></div>
+        <div class="field"><label>Total tables available per time slot</label><input id="totalTablesInput" type="number" min="1" placeholder="e.g. 12"></div>
+        <button class="btn-ghost-dark" id="saveTablesBtn">Save</button>
+        <div class="msg" id="tablesMsg"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Blocked dates (closures, private events)</h2></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <input type="date" id="newBlockedDate" style="padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;">
+          <button class="btn-ghost-dark" id="addBlockedDateBtn">+ Block this date</button>
+        </div>
+        <div id="blockedDatesList"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="admtab-settings" class="admtabpanel" style="display:none;">
+      <div class="panel">
+        <div class="panel-head"><h2>Restaurant info</h2></div>
+        <div class="field"><label>Name</label><input id="settingsName" placeholder="Our Restaurant"></div>
+        <div class="field"><label>Tagline</label><input id="settingsTagline" placeholder="Fine dining & drinks"></div>
+        <div class="field"><label>Contact email</label><input id="settingsEmail" type="email" placeholder="info@example.com"></div>
+        <div class="field"><label>Phone (optional)</label><input id="settingsPhone" placeholder="+20 1xx xxx xxxx"></div>
+        <div class="field"><label>Logo image URL (optional)</label><input id="settingsLogoUrl" placeholder="https://..."></div>
+        <button class="btn-ghost-dark" id="saveSettingsBtn">Save</button>
+        <div class="msg" id="settingsMsg"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Availability display</h2></div>
+        <div class="toggle-row">
+          <div>
+            <div class="tt">Show table availability to guests</div>
+            <div class="ts">When on, guests see how many tables are free at each time slot. When off, they only see whether a time is available or fully booked.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="showAvailabilityToggle"><span class="slider"></span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   FIREBASE CONFIG — replace with your own Firebase project's config.
+   Create a project at https://console.firebase.google.com, enable
+   Authentication (Email/Password) and Firestore, then paste your config
+   here. Create a document in the "users" collection keyed by each admin's
+   UID with { admin: true } so they can sign in to the admin panel below.
+   ========================================================================= */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const WEEKDAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const CATEGORIES = [
+  {key:'starters', label:'Starters'},
+  {key:'mains', label:'Mains'},
+  {key:'desserts', label:'Desserts'},
+  {key:'drinks', label:'Drinks & Cocktails'},
+  {key:'specials', label:"Chef's Specials"}
+];
+
+let menuItems = [];
+let allMenuForAdmin = [];
+let selectedParty = null;
+let selectedSlot = null;
+let currentAdminUser = null;
+let totalTables = 10;
+let showAvailability = true;
+
+function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function timeToMinutes(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function minutesToTime(m){ const h=Math.floor(m/60), mm=m%60; return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`; }
+function to12h(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const period = h>=12?'PM':'AM'; const hh = h%12===0?12:h%12;
+  return `${hh}:${String(m).padStart(2,'0')} ${period}`;
+}
+function fmtDateHuman(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
+}
+
+document.getElementById('footerYear').textContent = new Date().getFullYear();
+document.getElementById('bookDate').min = todayStr();
+document.getElementById('bookDate').value = todayStr();
+document.getElementById('bkDateFilter').value = todayStr();
+
+/* party size buttons 1-8 (+9 meaning 8+) */
+(function renderPartyGrid(){
+  const el = document.getElementById('partyGrid');
+  const sizes = [1,2,3,4,5,6,7,8];
+  el.innerHTML = sizes.map(n => `<button class="party-btn" data-n="${n}">${n===8?'8+':n}</button>`).join('');
+  el.querySelectorAll('.party-btn').forEach(btn => {
+    btn.onclick = () => {
+      selectedParty = Number(btn.dataset.n);
+      selectedSlot = null;
+      el.querySelectorAll('.party-btn').forEach(b => b.classList.toggle('selected', b===btn));
+      document.getElementById('dateField').style.display = 'block';
+      document.getElementById('slotsField').style.display = 'none';
+      document.getElementById('detailsFields').style.display = 'none';
+      onDateOrPartyChange();
+      document.getElementById('dateField').scrollIntoView({behavior:'smooth', block:'center'});
+    };
+  });
+})();
+
+/* ---------------- SETTINGS (name / email / logo / availability toggle) ---------------- */
+db.collection('rSettings').doc('main').onSnapshot(doc => {
+  const data = doc.exists ? doc.data() : {};
+  const name = data.name || 'Our Restaurant';
+  const tagline = data.tagline || 'Fine dining & drinks';
+  const email = data.email || '';
+  totalTables = Number(data.totalTables) || 10;
+  showAvailability = data.showAvailability !== false;
+
+  document.getElementById('heroName').textContent = name;
+  document.getElementById('heroTagline').textContent = tagline;
+  document.getElementById('footerName').textContent = name;
+  document.getElementById('footerName2').textContent = name;
+  document.title = name + ' — Reserve a Table';
+  if(data.logoUrl){
+    document.getElementById('heroLogo').src = data.logoUrl;
+    document.getElementById('heroLogo').style.display = 'inline-block';
+  } else {
+    document.getElementById('heroLogo').style.display = 'none';
+  }
+  const emailLink = document.getElementById('footerEmailLink');
+  if(email){ emailLink.textContent = email; emailLink.href = 'mailto:' + email; emailLink.style.display = 'inline'; }
+  else { emailLink.style.display = 'none'; }
+
+  document.getElementById('settingsName').value = name;
+  document.getElementById('settingsTagline').value = tagline;
+  document.getElementById('settingsEmail').value = email;
+  document.getElementById('settingsPhone').value = data.phone || '';
+  document.getElementById('settingsLogoUrl').value = data.logoUrl || '';
+  document.getElementById('totalTablesInput').value = totalTables;
+  document.getElementById('showAvailabilityToggle').checked = showAvailability;
+
+  if(selectedParty){ onDateOrPartyChange(); } // re-render slots if availability display setting changed
+});
+
+/* ---------------- MENU (public) ---------------- */
+db.collection('rMenu').onSnapshot(snap => {
+  allMenuForAdmin = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  menuItems = allMenuForAdmin.filter(m => m.active !== false);
+  renderMenuOverview();
+  if(currentAdminUser) renderMenuAdminList(allMenuForAdmin);
+});
+
+function renderMenuOverview(){
+  const el = document.getElementById('menuGrid');
+  if(menuItems.length === 0){ el.innerHTML = '<div class="empty-state">Menu coming soon.</div>'; return; }
+  const groups = CATEGORIES.map(c => {
+    const list = menuItems.filter(m => m.category === c.key);
+    if(list.length === 0) return '';
+    return `<div style="margin-top:14px;">
+      <div style="font-weight:700;color:var(--wine-900);margin-bottom:8px;">${escapeHtml(c.label)}</div>
+      <div class="menu-grid">
+        ${list.map(m => `<div class="menu-card">
+          <div class="mname">${escapeHtml(m.name)}</div>
+          ${m.description ? `<div class="mdesc">${escapeHtml(m.description)}</div>` : ''}
+          ${m.price ? `<div class="mprice">${escapeHtml(m.price)}</div>` : ''}
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML = groups || '<div class="empty-state">Menu coming soon.</div>';
+}
+
+/* ---------------- SLOT COMPUTATION (with table availability) ---------------- */
+async function computeAvailableSlots(dateStr, partySize){
+  const dow = new Date(dateStr+'T00:00:00').getDay();
+  const [hoursDoc, blockedDoc] = await Promise.all([
+    db.collection('rHours').doc(String(dow)).get(),
+    db.collection('rBlockedDates').doc(dateStr).get()
+  ]);
+  if(blockedDoc.exists) return { closed:true, reason:'We are closed on this date.' };
+  if(!hoursDoc.exists || hoursDoc.data().closed) return { closed:true, reason:'We are closed this day of the week.' };
+  const { open, close, slotMinutes } = hoursDoc.data();
+  const step = slotMinutes || 30;
+  const openM = timeToMinutes(open), closeM = timeToMinutes(close);
+  let times = [];
+  for(let t = openM; t < closeM; t += step){ times.push(minutesToTime(t)); }
+  if(dateStr === todayStr()){
+    const now = new Date();
+    const nowM = now.getHours()*60 + now.getMinutes();
+    times = times.filter(s => timeToMinutes(s) > nowM + 15);
+  }
+  const bookedSnap = await db.collection('rReservations').where('date','==',dateStr).get();
+  const countByTime = {};
+  bookedSnap.docs.forEach(d => {
+    const t = d.data().time;
+    countByTime[t] = (countByTime[t]||0) + 1;
+  });
+  const slots = times.map(t => {
+    const used = countByTime[t] || 0;
+    const remaining = Math.max(0, totalTables - used);
+    return { time:t, remaining, full: remaining <= 0 };
+  });
+  return { closed:false, slots };
+}
+
+async function onDateOrPartyChange(){
+  const dateStr = document.getElementById('bookDate').value;
+  if(!dateStr || !selectedParty){ return; }
+  document.getElementById('slotsField').style.display = 'block';
+  document.getElementById('detailsFields').style.display = 'none';
+  document.getElementById('slotsArea').innerHTML = '<div class="loading"><div class="spinner"></div>Checking availability…</div>';
+  selectedSlot = null;
+  const result = await computeAvailableSlots(dateStr, selectedParty);
+  const el = document.getElementById('slotsArea');
+  if(result.closed){
+    el.innerHTML = `<div class="empty-state">${escapeHtml(result.reason)}</div>`;
+    return;
+  }
+  if(result.slots.length === 0){
+    el.innerHTML = '<div class="empty-state">No times available for this date — try another day.</div>';
+    return;
+  }
+  el.innerHTML = `<div class="slots-grid">${result.slots.map(s => `
+    <button class="slot-btn ${s.full?'full':''}" data-slot="${s.time}" ${s.full?'disabled':''}>
+      <span>${to12h(s.time)}</span>
+      ${showAvailability ? `<span class="avail">${s.full ? 'Full' : s.remaining + ' table' + (s.remaining===1?'':'s') + ' left'}</span>` : (s.full ? '<span class="avail">Full</span>' : '')}
+    </button>`).join('')}</div>`;
+  el.querySelectorAll('.slot-btn:not(.full)').forEach(btn => {
+    btn.onclick = () => {
+      selectedSlot = btn.dataset.slot;
+      el.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('detailsFields').style.display = 'block';
+      document.getElementById('bookName').scrollIntoView({behavior:'smooth', block:'center'});
+    };
+  });
+}
+document.getElementById('bookDate').onchange = onDateOrPartyChange;
+
+document.getElementById('submitBookingBtn').onclick = async () => {
+  const name = document.getElementById('bookName').value.trim();
+  const phone = document.getElementById('bookPhone').value.trim();
+  const notes = document.getElementById('bookNotes').value.trim();
+  const date = document.getElementById('bookDate').value;
+  const msg = document.getElementById('bookingMsg');
+  if(!name || !phone || !selectedSlot || !selectedParty){ msg.textContent = 'Please fill in your name and phone number.'; msg.className='msg err'; return; }
+  const btn = document.getElementById('submitBookingBtn');
+  btn.disabled = true; btn.textContent = 'Booking…';
+  try{
+    // re-check table availability right before booking
+    const clashSnap = await db.collection('rReservations').where('date','==',date).where('time','==',selectedSlot).get();
+    if(clashSnap.size >= totalTables){
+      msg.textContent = 'Sorry, that time just filled up. Please pick another.';
+      msg.className = 'msg err';
+      onDateOrPartyChange();
+      return;
+    }
+    await db.collection('rReservations').add({
+      partySize: selectedParty,
+      date, time: selectedSlot,
+      guestName: name, guestPhone: phone, notes,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('bookingFlow').style.display = 'none';
+    document.getElementById('bookingConfirm').style.display = 'block';
+    document.getElementById('confirmText').textContent =
+      `${name}, your table for ${selectedParty}${selectedParty===8?'+':''} is booked for ${fmtDateHuman(date)} at ${to12h(selectedSlot)}. We'll contact you at ${phone} to confirm.`;
+  }catch(err){
+    msg.textContent = err.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Confirm reservation';
+  }
+};
+
+document.getElementById('bookAgainBtn').onclick = () => {
+  document.getElementById('bookingFlow').style.display = 'block';
+  document.getElementById('bookingConfirm').style.display = 'none';
+  document.getElementById('bookName').value = '';
+  document.getElementById('bookPhone').value = '';
+  document.getElementById('bookNotes').value = '';
+  selectedParty = null; selectedSlot = null;
+  document.querySelectorAll('.party-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('dateField').style.display = 'none';
+  document.getElementById('slotsField').style.display = 'none';
+  document.getElementById('detailsFields').style.display = 'none';
+  document.getElementById('booking').scrollIntoView({behavior:'smooth'});
+};
+
+/* =========================================================================
+   ADMIN
+   ========================================================================= */
+document.getElementById('adminDotBtn').onclick = () => {
+  document.getElementById('adminLoginMsg').textContent = '';
+  document.getElementById('adminEmail').value = '';
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('adminOverlay').classList.add('show');
+};
+document.getElementById('adminCancelBtn').onclick = () => {
+  document.getElementById('adminOverlay').classList.remove('show');
+};
+
+document.getElementById('adminLoginBtn').onclick = async () => {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pw = document.getElementById('adminPassword').value;
+  const msg = document.getElementById('adminLoginMsg');
+  msg.textContent = '';
+  if(!email || !pw){ msg.textContent = 'Enter your email and password.'; return; }
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pw);
+    const userDoc = await db.collection('users').doc(cred.user.uid).get();
+    const perms = userDoc.exists ? (userDoc.data().permissions || {}) : {};
+    if(!userDoc.exists || (perms.admin !== true && userDoc.data().admin !== true)){
+      msg.textContent = 'This account does not have admin access.';
+      await auth.signOut();
+      return;
+    }
+    currentAdminUser = { uid: cred.user.uid, name: userDoc.data().name || email };
+    document.getElementById('adminOverlay').classList.remove('show');
+    document.getElementById('adminPanel').classList.add('show');
+    document.getElementById('adminWhoName').textContent = currentAdminUser.name;
+    switchAdminTab('reservations');
+    loadHoursTab();
+  }catch(err){
+    const map = {
+      'auth/wrong-password':'Incorrect password.',
+      'auth/invalid-credential':'Incorrect email or password.',
+      'auth/user-not-found':'No account with that email.',
+      'auth/too-many-requests':'Too many attempts, try again shortly.'
+    };
+    msg.textContent = map[err.code] || err.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+};
+
+document.getElementById('adminLogoutBtn').onclick = () => {
+  auth.signOut();
+  currentAdminUser = null;
+  document.getElementById('adminPanel').classList.remove('show');
+};
+document.getElementById('adminCloseBtn').onclick = () => {
+  document.getElementById('adminPanel').classList.remove('show');
+};
+
+document.querySelectorAll('#adminTabsNav button').forEach(btn => {
+  btn.onclick = () => switchAdminTab(btn.dataset.tab);
+});
+function switchAdminTab(tab){
+  document.querySelectorAll('.admtabpanel').forEach(p => p.style.display = 'none');
+  document.getElementById('admtab-' + tab).style.display = 'block';
+  document.querySelectorAll('#adminTabsNav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if(tab === 'reservations') loadReservationsForDate(document.getElementById('bkDateFilter').value || todayStr());
+  if(tab === 'menu') renderMenuAdminList(allMenuForAdmin);
+}
+
+/* ---- Reservations (admin) ---- */
+let unsubReservations = null;
+document.getElementById('bkDateFilter').onchange = (e) => loadReservationsForDate(e.target.value);
+document.getElementById('bkPrevDay').onclick = () => shiftBkDate(-1);
+document.getElementById('bkNextDay').onclick = () => shiftBkDate(1);
+document.getElementById('bkTodayBtn').onclick = () => { document.getElementById('bkDateFilter').value = todayStr(); loadReservationsForDate(todayStr()); };
+function shiftBkDate(delta){
+  const inp = document.getElementById('bkDateFilter');
+  const d = new Date(inp.value + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  inp.value = d.toISOString().slice(0,10);
+  loadReservationsForDate(inp.value);
+}
+function loadReservationsForDate(dateStr){
+  if(unsubReservations) unsubReservations();
+  const el = document.getElementById('bookingsList');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading…</div>';
+  unsubReservations = db.collection('rReservations').where('date','==',dateStr).onSnapshot(snap => {
+    const rows = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => (a.time||'').localeCompare(b.time||''));
+    renderReservationsList(rows, dateStr);
+  }, err => { el.innerHTML = `<div class="empty-state">Couldn't load reservations (${escapeHtml(err.message)}).</div>`; });
+}
+function renderReservationsList(rows, dateStr){
+  const el = document.getElementById('bookingsList');
+  if(rows.length === 0){ el.innerHTML = `<div class="empty-state">No reservations for ${escapeHtml(fmtDateHuman(dateStr))}.</div>`; return; }
+  el.innerHTML = `<table class="datatable"><thead><tr><th>Time</th><th>Guest</th><th>Phone</th><th>Party</th><th>Notes</th><th></th></tr></thead><tbody>
+    ${rows.map(r => `<tr>
+      <td>${to12h(r.time)}</td>
+      <td>${escapeHtml(r.guestName)}</td>
+      <td>${escapeHtml(r.guestPhone)}</td>
+      <td>${escapeHtml(String(r.partySize||''))}</td>
+      <td>${escapeHtml(r.notes || '—')}</td>
+      <td><button class="btn-danger" onclick="cancelReservation('${r.id}')">Cancel</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function cancelReservation(id){
+  if(!confirm('Cancel this reservation? This frees up the table again.')) return;
+  db.collection('rReservations').doc(id).delete();
+}
+
+/* ---- Menu (admin) ---- */
+(function initItemCategorySelect(){
+  const sel = document.getElementById('newItemCategory');
+  if(sel) sel.innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${escapeHtml(c.label)}</option>`).join('');
+})();
+
+function renderMenuAdminList(all){
+  const el = document.getElementById('menuAdminList');
+  if(!el) return;
+  if(all.length === 0){ el.innerHTML = '<div class="empty-state">No menu items yet.</div>'; return; }
+  el.innerHTML = all.map(m => `
+    <div class="row-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input value="${escapeHtml(m.name)}" onchange="updateMenuItem('${m.id}','name',this.value)" style="flex:2;min-width:140px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+        <select onchange="updateMenuItem('${m.id}','category',this.value)" style="flex:1;min-width:150px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+          ${CATEGORIES.map(c => `<option value="${c.key}" ${m.category===c.key?'selected':''}>${escapeHtml(c.label)}</option>`).join('')}
+        </select>
+        <input value="${escapeHtml(m.price||'')}" onchange="updateMenuItem('${m.id}','price',this.value)" placeholder="price" style="flex:1;min-width:100px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+        <input value="${escapeHtml(m.description||'')}" onchange="updateMenuItem('${m.id}','description',this.value)" placeholder="description (optional)" style="flex:2;min-width:180px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${m.active!==false?'checked':''} onchange="updateMenuItem('${m.id}','active',this.checked)"> Active</label>
+        <button class="btn-danger" onclick="deleteMenuItem('${m.id}')">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+function updateMenuItem(id, field, value){
+  db.collection('rMenu').doc(id).update({ [field]: value }).catch(err => alert('Could not update: ' + err.message));
+}
+function deleteMenuItem(id){
+  if(!confirm('Remove this menu item?')) return;
+  db.collection('rMenu').doc(id).delete();
+}
+document.getElementById('addItemBtn').onclick = async () => {
+  const name = document.getElementById('newItemName').value.trim();
+  const category = document.getElementById('newItemCategory').value;
+  const description = document.getElementById('newItemDesc').value.trim();
+  const price = document.getElementById('newItemPrice').value.trim();
+  const msg = document.getElementById('menuMsg');
+  if(!name){ msg.textContent = 'Enter an item name.'; msg.className = 'msg err'; return; }
+  try{
+    await db.collection('rMenu').add({ name, category, description, price, active: true });
+    document.getElementById('newItemName').value = '';
+    document.getElementById('newItemDesc').value = '';
+    document.getElementById('newItemPrice').value = '';
+    msg.textContent = 'Added.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+
+/* ---- Hours & tables ---- */
+function loadHoursTab(){
+  const el = document.getElementById('hoursList');
+  el.innerHTML = WEEKDAY_NAMES.map((name, dow) => `
+    <div class="hours-row" data-dow="${dow}">
+      <div style="font-weight:700;">${name}</div>
+      <div><input type="time" class="hr-open" value="12:00" style="width:100%;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;"></div>
+      <div><input type="time" class="hr-close" value="23:00" style="width:100%;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;"></div>
+      <div><select class="hr-slot" style="width:100%;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;">
+        <option value="15">15 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">60 min</option>
+      </select></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="hr-closed"> Closed</label>
+        <button class="btn-ghost-dark hr-save">Save</button>
+      </div>
+    </div>
+  `).join('');
+
+  db.collection('rHours').get().then(snap => {
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const row = el.querySelector(`.hours-row[data-dow="${d.id}"]`);
+      if(!row) return;
+      row.querySelector('.hr-open').value = data.open || '12:00';
+      row.querySelector('.hr-close').value = data.close || '23:00';
+      row.querySelector('.hr-slot').value = String(data.slotMinutes || 30);
+      row.querySelector('.hr-closed').checked = !!data.closed;
+    });
+  });
+
+  el.querySelectorAll('.hr-save').forEach(btn => {
+    btn.onclick = () => {
+      const row = btn.closest('.hours-row');
+      const dow = row.dataset.dow;
+      const open = row.querySelector('.hr-open').value;
+      const close = row.querySelector('.hr-close').value;
+      const slotMinutes = Number(row.querySelector('.hr-slot').value);
+      const closed = row.querySelector('.hr-closed').checked;
+      const msg = document.getElementById('hoursMsg');
+      db.collection('rHours').doc(dow).set({ open, close, slotMinutes, closed })
+        .then(() => { msg.textContent = WEEKDAY_NAMES[dow] + ' hours saved.'; msg.className = 'msg ok'; })
+        .catch(err => { msg.textContent = err.message; msg.className = 'msg err'; });
+    };
+  });
+
+  loadBlockedDates();
+}
+
+document.getElementById('saveTablesBtn').onclick = async () => {
+  const n = Number(document.getElementById('totalTablesInput').value);
+  const msg = document.getElementById('tablesMsg');
+  if(!n || n < 1){ msg.textContent = 'Enter a valid number of tables.'; msg.className = 'msg err'; return; }
+  try{
+    await db.collection('rSettings').doc('main').set({ totalTables: n }, { merge: true });
+    msg.textContent = 'Saved.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+
+function loadBlockedDates(){
+  db.collection('rBlockedDates').onSnapshot(snap => {
+    const dates = snap.docs.map(d => d.id).sort();
+    const el = document.getElementById('blockedDatesList');
+    if(dates.length === 0){ el.innerHTML = '<div class="empty-state">No blocked dates.</div>'; return; }
+    el.innerHTML = dates.map(ds => `
+      <div class="row-item">
+        <div class="rmain"><div class="t1">${escapeHtml(fmtDateHuman(ds))}</div></div>
+        <button class="btn-danger" onclick="removeBlockedDate('${ds}')">Unblock</button>
+      </div>
+    `).join('');
+  });
+}
+document.getElementById('addBlockedDateBtn').onclick = () => {
+  const val = document.getElementById('newBlockedDate').value;
+  if(!val) return;
+  db.collection('rBlockedDates').doc(val).set({ date: val });
+  document.getElementById('newBlockedDate').value = '';
+};
+function removeBlockedDate(dateStr){
+  db.collection('rBlockedDates').doc(dateStr).delete();
+}
+
+/* ---- Settings (name / email / logo / availability toggle) ---- */
+document.getElementById('saveSettingsBtn').onclick = async () => {
+  const name = document.getElementById('settingsName').value.trim();
+  const tagline = document.getElementById('settingsTagline').value.trim();
+  const email = document.getElementById('settingsEmail').value.trim();
+  const phone = document.getElementById('settingsPhone').value.trim();
+  const logoUrl = document.getElementById('settingsLogoUrl').value.trim();
+  const msg = document.getElementById('settingsMsg');
+  if(!name){ msg.textContent = 'Enter a restaurant name.'; msg.className = 'msg err'; return; }
+  try{
+    await db.collection('rSettings').doc('main').set({ name, tagline, email, phone, logoUrl }, { merge: true });
+    msg.textContent = 'Saved.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+
+document.getElementById('showAvailabilityToggle').onchange = async (e) => {
+  try{
+    await db.collection('rSettings').doc('main').set({ showAvailability: e.target.checked }, { merge: true });
+  }catch(err){ alert('Could not update: ' + err.message); e.target.checked = !e.target.checked; }
+};
+</script>
+</body>
+</html>
