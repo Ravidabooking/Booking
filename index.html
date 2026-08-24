@@ -25,19 +25,41 @@
   button{font-family:inherit;cursor:pointer;}
   input,select,textarea{font-family:inherit;}
 
-  .hero{
-    background:linear-gradient(180deg, var(--wine-900) 0%, var(--wine-700) 100%);
-    color:#fff;text-align:center;padding:56px 20px 64px;
+  .navbar{
+    position:sticky;top:0;z-index:50;background:var(--wine-900);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 22px;box-shadow:0 2px 10px rgba(0,0,0,.15);
   }
-  .hero img.logo{width:110px;height:auto;border-radius:16px;margin-bottom:18px;box-shadow:0 12px 30px rgba(0,0,0,0.35);}
-  .hero h1{font-size:2rem;margin:0 0 6px;letter-spacing:.3px;}
-  .hero p{color:rgba(255,255,255,.78);font-size:.95rem;margin:0 0 26px;}
+  .navbar .navbrand{display:flex;align-items:center;gap:10px;color:#fff;font-family:'Manrope',sans-serif;font-weight:800;font-size:17px;text-decoration:none;}
+  .navbar .navbrand img{width:34px;height:34px;border-radius:8px;object-fit:cover;}
+  .navbar .navlinks{display:flex;gap:22px;}
+  .navbar .navlinks a{color:rgba(255,255,255,.82);text-decoration:none;font-size:14px;font-weight:600;}
+  .navbar .navlinks a:hover{color:#fff;}
+  .navbar .navlinks a.cta{background:var(--gold);color:#2A1F05;padding:9px 16px;border-radius:8px;}
+  @media(max-width:640px){ .navbar .navlinks{gap:12px;} .navbar .navlinks span.nav-hide-sm{display:none;} }
+
+  .hero{
+    background:linear-gradient(180deg, rgba(59,13,20,.78) 0%, rgba(92,22,32,.85) 100%), var(--hero-bg, linear-gradient(180deg, var(--wine-900), var(--wine-700)));
+    background-size:cover;background-position:center;
+    color:#fff;text-align:center;padding:64px 20px 72px;
+  }
+  .hero img.logo{width:110px;height:auto;border-radius:16px;margin-bottom:18px;box-shadow:0 12px 30px rgba(0,0,0,0.35);object-fit:cover;}
+  .hero h1{font-size:2.1rem;margin:0 0 6px;letter-spacing:.3px;}
+  .hero p{color:rgba(255,255,255,.82);font-size:.95rem;margin:0 0 26px;}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:10px;border:none;font-weight:700;font-size:15px;transition:transform .08s, background .15s;}
   .btn:active{transform:scale(0.98);}
   .btn-gold{background:var(--gold);color:#2A1F05;}
   .btn-gold:hover{background:var(--gold-dark);}
   .btn-ghost{background:transparent;border:1.5px solid rgba(255,255,255,.4);color:#fff;}
   .btn-ghost:hover{background:rgba(255,255,255,.1);}
+
+  .whatsapp-float{
+    position:fixed;bottom:22px;right:22px;z-index:60;
+    width:56px;height:56px;border-radius:50%;background:#25D366;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.3);
+    text-decoration:none;color:#fff;font-size:28px;
+  }
+  .whatsapp-float:hover{transform:scale(1.06);}
   .btn-sm{padding:8px 14px;font-size:13px;border-radius:8px;}
   .btn-block{width:100%;}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
@@ -73,8 +95,23 @@
   .slot-btn .avail{font-size:10.5px;font-weight:600;opacity:.75;}
   .empty-state{text-align:center;padding:26px 10px;color:var(--ink-soft);font-size:13.5px;border:1.5px dashed var(--line);border-radius:10px;}
 
-  footer{text-align:center;padding:30px 20px 50px;color:var(--ink-soft);font-size:12.5px;}
-  footer a{color:var(--wine-700);text-decoration:none;font-weight:600;}
+  .site-footer{background:var(--wine-900);color:rgba(255,255,255,.8);padding:44px 20px 24px;margin-top:30px;}
+  .footer-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:32px;}
+  @media(max-width:700px){ .footer-grid{grid-template-columns:1fr;gap:26px;text-align:center;} }
+  .footer-grid h4{color:#fff;font-family:'Manrope',sans-serif;font-size:14px;margin:0 0 14px;letter-spacing:.03em;text-transform:uppercase;}
+  .footer-grid .fname{color:#fff;font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;margin-bottom:8px;}
+  .footer-grid p, .footer-grid div{font-size:13px;line-height:1.7;}
+  .footer-grid a{color:rgba(255,255,255,.8);text-decoration:none;}
+  .footer-grid a:hover{color:#fff;}
+  .footer-links{list-style:none;padding:0;margin:0;}
+  .footer-links li{margin-bottom:8px;}
+  .social-row{display:flex;gap:10px;margin-top:14px;}
+  @media(max-width:700px){ .social-row{justify-content:center;} }
+  .social-row a{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .social-row a:hover{background:var(--gold);color:#2A1F05;}
+  .footer-bottom{max-width:1000px;margin:30px auto 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;color:rgba(255,255,255,.55);}
+  .footer-bottom a{color:rgba(255,255,255,.55);text-decoration:none;font-weight:600;}
+  .footer-bottom a:hover{color:#fff;}
   .admin-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cream-50);border:none;cursor:pointer;margin-left:8px;vertical-align:middle;opacity:.35;}
 
   .confirm-box{text-align:center;padding:30px 10px;}
@@ -134,7 +171,18 @@
 <body>
 
 <!-- ============ PUBLIC PAGE ============ -->
-<div class="hero">
+<nav class="navbar">
+  <a href="#top" class="navbrand">
+    <img id="navLogo" src="" alt="" style="display:none;">
+    <span id="navName">Our Restaurant</span>
+  </a>
+  <div class="navlinks">
+    <span class="nav-hide-sm"><a href="#menu">Menu</a></span>
+    <a href="#booking" class="cta">Reserve</a>
+  </div>
+</nav>
+
+<div class="hero" id="top">
   <img class="logo" id="heroLogo" src="" alt="Restaurant" style="display:none;">
   <h1 id="heroName">Our Restaurant</h1>
   <p id="heroTagline">Fine dining &amp; drinks</p>
@@ -153,7 +201,7 @@
   <section id="booking">
     <div class="card">
       <h2 class="section-title">Reserve a table</h2>
-      <p class="section-sub">No account needed — just a few taps.</p>
+      <p class="section-sub" id="bookingStepLabel">Step 1 of 2 — Party, date &amp; time</p>
 
       <div id="bookingFlow">
         <div class="field">
@@ -187,12 +235,33 @@
   </section>
 </main>
 
-<footer>
-  <div id="footerName">Our Restaurant</div>
-  <div style="margin-top:6px;">
-    <a id="footerEmailLink" href="mailto:">info@example.com</a>
+<a id="whatsappFloat" class="whatsapp-float" href="#" target="_blank" style="display:none;" title="Chat on WhatsApp">💬</a>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="fname" id="footerName">Our Restaurant</div>
+      <p id="footerBlurb">Good food, good company.</p>
+      <div class="social-row" id="socialRow"></div>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <ul class="footer-links">
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#booking">Reserve a table</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <div id="footerAddress" style="display:none;"></div>
+      <div style="margin-top:6px;"><a id="footerEmailLink" href="mailto:">info@example.com</a></div>
+      <div id="footerPhoneRow" style="margin-top:6px;display:none;"><a id="footerPhoneLink" href="tel:"></a></div>
+    </div>
   </div>
-  <div style="margin-top:14px;">© <span id="footerYear"></span> <span id="footerName2">Our Restaurant</span><button class="admin-dot" id="adminDotBtn" title=" "></button></div>
+  <div class="footer-bottom">
+    <span>© <span id="footerYear"></span> <span id="footerName2">Our Restaurant</span></span>
+    <a href="#" id="adminEntryLink">Staff Login</a>
+  </div>
 </footer>
 
 <!-- ============ ADMIN LOGIN ============ -->
@@ -230,12 +299,27 @@
       <div class="panel">
         <div class="panel-head">
           <h2>Reservations</h2>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button class="btn-ghost-dark" id="bkPrevDay">‹</button>
             <input type="date" id="bkDateFilter" style="padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
             <button class="btn-ghost-dark" id="bkNextDay">›</button>
             <button class="btn-ghost-dark" id="bkTodayBtn">Today</button>
+            <button class="btn-gold btn-sm" id="openWalkinBtn" style="border-radius:6px;">+ Add walk-in / manual booking</button>
           </div>
+        </div>
+        <div id="walkinForm" style="display:none;background:var(--cream-50);border:1.5px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+            <div class="field" style="margin-bottom:0;"><label>Name</label><input id="wkName" placeholder="Guest or 'Walk-in'"></div>
+            <div class="field" style="margin-bottom:0;"><label>Phone</label><input id="wkPhone" placeholder="Optional"></div>
+            <div class="field" style="margin-bottom:0;"><label>Party size</label><input id="wkParty" type="number" min="1" value="2"></div>
+            <div class="field" style="margin-bottom:0;"><label>Time</label><input id="wkTime" type="time"></div>
+            <div class="field" style="margin-bottom:0;"><label>Tables needed</label><input id="wkTables" type="number" min="1" value="1"></div>
+          </div>
+          <div class="field" style="margin-top:10px;margin-bottom:0;"><label>Notes (optional)</label><input id="wkNotes" placeholder="e.g. birthday, outdoor seating"></div>
+          <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 12px;">Use "Tables needed" for a big party that takes up more than one table — this blocks that extra capacity from being booked online. This adds the booking directly without checking online availability, so use it for walk-ins or phone bookings you're manually accepting.</p>
+          <button class="btn-gold btn-sm" id="saveWalkinBtn">Add reservation</button>
+          <button class="btn-ghost-dark btn-sm" id="cancelWalkinBtn">Cancel</button>
+          <div class="msg" id="walkinMsg"></div>
         </div>
         <div id="bookingsList"><div class="loading"><div class="spinner"></div>Loading…</div></div>
       </div>
@@ -261,7 +345,7 @@
     <!-- HOURS & TABLES -->
     <div id="admtab-hours" class="admtabpanel" style="display:none;">
       <div class="panel">
-        <div class="panel-head"><h2>Opening hours</h2></div>
+        <div class="panel-head"><h2>Opening hours</h2><button class="btn-ghost-dark" id="saveAllHoursBtn">Save all days</button></div>
         <div id="hoursList"></div>
         <div class="msg" id="hoursMsg"></div>
       </div>
@@ -289,9 +373,30 @@
         <div class="field"><label>Tagline</label><input id="settingsTagline" placeholder="Fine dining & drinks"></div>
         <div class="field"><label>Contact email</label><input id="settingsEmail" type="email" placeholder="info@example.com"></div>
         <div class="field"><label>Phone (optional)</label><input id="settingsPhone" placeholder="+20 1xx xxx xxxx"></div>
-        <div class="field"><label>Logo image URL (optional)</label><input id="settingsLogoUrl" placeholder="https://..."></div>
+        <div class="field"><label>Address (optional)</label><input id="settingsAddress" placeholder="Street, city"></div>
         <button class="btn-ghost-dark" id="saveSettingsBtn">Save</button>
         <div class="msg" id="settingsMsg"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Logo &amp; background image</h2></div>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;margin-bottom:14px;">
+          Upload your logo and hero background photo to a GitHub repository (or any image host), then paste the direct image URL here.
+          On GitHub: open your repo → Add file → Upload files → click the uploaded image → click "Download" or "..." → copy the
+          <strong>raw</strong> image URL (it should end in .jpg/.png and open the image directly when pasted in a browser tab).
+        </p>
+        <div class="field"><label>Logo image URL</label><input id="settingsLogoUrl" placeholder="https://raw.githubusercontent.com/you/repo/main/logo.png"></div>
+        <div class="field"><label>Hero background image URL</label><input id="settingsHeroBgUrl" placeholder="https://raw.githubusercontent.com/you/repo/main/background.jpg"></div>
+        <button class="btn-ghost-dark" id="saveSettingsBtn2">Save</button>
+        <div class="msg" id="settingsMsg2"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Social &amp; WhatsApp</h2></div>
+        <div class="field"><label>Facebook page URL (optional)</label><input id="settingsFacebook" placeholder="https://facebook.com/..."></div>
+        <div class="field"><label>Instagram URL (optional)</label><input id="settingsInstagram" placeholder="https://instagram.com/..."></div>
+        <div class="field"><label>WhatsApp number for guests (with country code, no + or spaces)</label><input id="settingsWhatsapp" placeholder="e.g. 201234567890"></div>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:-6px;">This shows a floating WhatsApp chat button on the site for guests — separate from the CallMeBot alert number below.</p>
+        <button class="btn-ghost-dark" id="saveSettingsBtn3">Save</button>
+        <div class="msg" id="settingsMsg3"></div>
       </div>
       <div class="panel">
         <div class="panel-head"><h2>Availability display</h2></div>
@@ -302,6 +407,23 @@
           </div>
           <label class="switch"><input type="checkbox" id="showAvailabilityToggle"><span class="slider"></span></label>
         </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>WhatsApp alerts (CallMeBot)</h2></div>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;margin-bottom:14px;">
+          Get a WhatsApp message every time a new reservation comes in. Message
+          <a href="https://wa.me/34644519505?text=I%20allow%20callmebot%20to%20send%20me%20messages" target="_blank" style="color:var(--wine-700);font-weight:600;">this CallMeBot number on WhatsApp</a>
+          with the text "I allow callmebot to send me messages", wait for their reply with your API key, then enter your details below.
+        </p>
+        <div class="toggle-row" style="border-bottom:none;padding-bottom:6px;">
+          <div><div class="tt">Enable WhatsApp alerts</div></div>
+          <label class="switch"><input type="checkbox" id="callmebotEnabled"><span class="slider"></span></label>
+        </div>
+        <div class="field"><label>Restaurant / manager phone (with country code, no + or spaces)</label><input id="callmebotPhone" placeholder="e.g. 201234567890"></div>
+        <div class="field"><label>CallMeBot API key</label><input id="callmebotApikey" placeholder="e.g. 123456"></div>
+        <button class="btn-ghost-dark" id="saveCallmebotBtn">Save</button>
+        <button class="btn-ghost-dark" id="testCallmebotBtn" style="margin-left:8px;">Send test message</button>
+        <div class="msg" id="callmebotMsg"></div>
       </div>
     </div>
   </div>
@@ -343,6 +465,7 @@ let selectedSlot = null;
 let currentAdminUser = null;
 let totalTables = 10;
 let showAvailability = true;
+let callmebotSettings = { enabled:false, phone:'', apikey:'' };
 
 function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -391,28 +514,70 @@ db.collection('rSettings').doc('main').onSnapshot(doc => {
   const email = data.email || '';
   totalTables = Number(data.totalTables) || 10;
   showAvailability = data.showAvailability !== false;
+  callmebotSettings = data.callmebot || { enabled:false, phone:'', apikey:'' };
 
   document.getElementById('heroName').textContent = name;
   document.getElementById('heroTagline').textContent = tagline;
   document.getElementById('footerName').textContent = name;
   document.getElementById('footerName2').textContent = name;
+  document.getElementById('navName').textContent = name;
+  document.getElementById('footerBlurb').textContent = tagline;
   document.title = name + ' — Reserve a Table';
   if(data.logoUrl){
     document.getElementById('heroLogo').src = data.logoUrl;
     document.getElementById('heroLogo').style.display = 'inline-block';
+    document.getElementById('navLogo').src = data.logoUrl;
+    document.getElementById('navLogo').style.display = 'inline-block';
   } else {
     document.getElementById('heroLogo').style.display = 'none';
+    document.getElementById('navLogo').style.display = 'none';
+  }
+  if(data.heroBgUrl){
+    document.querySelector('.hero').style.setProperty('--hero-bg', `url('${data.heroBgUrl}')`);
   }
   const emailLink = document.getElementById('footerEmailLink');
   if(email){ emailLink.textContent = email; emailLink.href = 'mailto:' + email; emailLink.style.display = 'inline'; }
   else { emailLink.style.display = 'none'; }
+
+  const addrEl = document.getElementById('footerAddress');
+  if(data.address){ addrEl.textContent = data.address; addrEl.style.display = 'block'; }
+  else { addrEl.style.display = 'none'; }
+
+  const phoneRow = document.getElementById('footerPhoneRow');
+  const phoneLink = document.getElementById('footerPhoneLink');
+  if(data.phone){
+    phoneLink.textContent = data.phone;
+    phoneLink.href = 'tel:' + data.phone.replace(/\s+/g,'');
+    phoneRow.style.display = 'block';
+  } else { phoneRow.style.display = 'none'; }
+
+  const socialRow = document.getElementById('socialRow');
+  const socials = [
+    data.facebookUrl ? { url:data.facebookUrl, icon:'f' } : null,
+    data.instagramUrl ? { url:data.instagramUrl, icon:'◎' } : null
+  ].filter(Boolean);
+  socialRow.innerHTML = socials.map(s => `<a href="${escapeHtml(s.url)}" target="_blank">${s.icon}</a>`).join('');
+
+  const waFloat = document.getElementById('whatsappFloat');
+  if(data.whatsappNumber){
+    waFloat.href = `https://wa.me/${data.whatsappNumber.replace(/[^0-9]/g,'')}`;
+    waFloat.style.display = 'flex';
+  } else { waFloat.style.display = 'none'; }
 
   document.getElementById('settingsName').value = name;
   document.getElementById('settingsTagline').value = tagline;
   document.getElementById('settingsEmail').value = email;
   document.getElementById('settingsPhone').value = data.phone || '';
   document.getElementById('settingsLogoUrl').value = data.logoUrl || '';
+  document.getElementById('settingsHeroBgUrl').value = data.heroBgUrl || '';
+  document.getElementById('settingsAddress').value = data.address || '';
+  document.getElementById('settingsFacebook').value = data.facebookUrl || '';
+  document.getElementById('settingsInstagram').value = data.instagramUrl || '';
+  document.getElementById('settingsWhatsapp').value = data.whatsappNumber || '';
   document.getElementById('totalTablesInput').value = totalTables;
+  document.getElementById('callmebotEnabled').checked = !!callmebotSettings.enabled;
+  document.getElementById('callmebotPhone').value = callmebotSettings.phone || '';
+  document.getElementById('callmebotApikey').value = callmebotSettings.apikey || '';
   document.getElementById('showAvailabilityToggle').checked = showAvailability;
 
   if(selectedParty){ onDateOrPartyChange(); } // re-render slots if availability display setting changed
@@ -457,9 +622,11 @@ async function computeAvailableSlots(dateStr, partySize){
   if(!hoursDoc.exists || hoursDoc.data().closed) return { closed:true, reason:'We are closed this day of the week.' };
   const { open, close, slotMinutes } = hoursDoc.data();
   const step = slotMinutes || 30;
-  const openM = timeToMinutes(open), closeM = timeToMinutes(close);
+  const openM = timeToMinutes(open);
+  let closeM = timeToMinutes(close);
+  if(closeM <= openM) closeM += 24 * 60; // closing time is after midnight (e.g. open 18:00, close 02:00)
   let times = [];
-  for(let t = openM; t < closeM; t += step){ times.push(minutesToTime(t)); }
+  for(let t = openM; t < closeM; t += step){ times.push(minutesToTime(t % (24*60))); }
   if(dateStr === todayStr()){
     const now = new Date();
     const nowM = now.getHours()*60 + now.getMinutes();
@@ -468,8 +635,10 @@ async function computeAvailableSlots(dateStr, partySize){
   const bookedSnap = await db.collection('rReservations').where('date','==',dateStr).get();
   const countByTime = {};
   bookedSnap.docs.forEach(d => {
-    const t = d.data().time;
-    countByTime[t] = (countByTime[t]||0) + 1;
+    const data = d.data();
+    const t = data.time;
+    const used = Number(data.tablesUsed) || 1;
+    countByTime[t] = (countByTime[t]||0) + used;
   });
   const slots = times.map(t => {
     const used = countByTime[t] || 0;
@@ -507,6 +676,7 @@ async function onDateOrPartyChange(){
       el.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       document.getElementById('detailsFields').style.display = 'block';
+      document.getElementById('bookingStepLabel').textContent = 'Step 2 of 2 — Your details';
       document.getElementById('bookName').scrollIntoView({behavior:'smooth', block:'center'});
     };
   });
@@ -525,7 +695,8 @@ document.getElementById('submitBookingBtn').onclick = async () => {
   try{
     // re-check table availability right before booking
     const clashSnap = await db.collection('rReservations').where('date','==',date).where('time','==',selectedSlot).get();
-    if(clashSnap.size >= totalTables){
+    const usedNow = clashSnap.docs.reduce((sum, d) => sum + (Number(d.data().tablesUsed) || 1), 0);
+    if(usedNow >= totalTables){
       msg.textContent = 'Sorry, that time just filled up. Please pick another.';
       msg.className = 'msg err';
       onDateOrPartyChange();
@@ -535,8 +706,10 @@ document.getElementById('submitBookingBtn').onclick = async () => {
       partySize: selectedParty,
       date, time: selectedSlot,
       guestName: name, guestPhone: phone, notes,
+      tablesUsed: 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    sendWhatsappAlert(`🔔 New reservation: ${name} (${phone}), party of ${selectedParty}, ${fmtDateHuman(date)} at ${to12h(selectedSlot)}.${notes ? ' Notes: ' + notes : ''}`);
     document.getElementById('bookingFlow').style.display = 'none';
     document.getElementById('bookingConfirm').style.display = 'block';
     document.getElementById('confirmText').textContent =
@@ -559,13 +732,15 @@ document.getElementById('bookAgainBtn').onclick = () => {
   document.getElementById('dateField').style.display = 'none';
   document.getElementById('slotsField').style.display = 'none';
   document.getElementById('detailsFields').style.display = 'none';
+  document.getElementById('bookingStepLabel').textContent = 'Step 1 of 2 — Party, date & time';
   document.getElementById('booking').scrollIntoView({behavior:'smooth'});
 };
 
 /* =========================================================================
    ADMIN
    ========================================================================= */
-document.getElementById('adminDotBtn').onclick = () => {
+document.getElementById('adminEntryLink').onclick = (e) => {
+  e.preventDefault();
   document.getElementById('adminLoginMsg').textContent = '';
   document.getElementById('adminEmail').value = '';
   document.getElementById('adminPassword').value = '';
@@ -656,12 +831,13 @@ function loadReservationsForDate(dateStr){
 function renderReservationsList(rows, dateStr){
   const el = document.getElementById('bookingsList');
   if(rows.length === 0){ el.innerHTML = `<div class="empty-state">No reservations for ${escapeHtml(fmtDateHuman(dateStr))}.</div>`; return; }
-  el.innerHTML = `<table class="datatable"><thead><tr><th>Time</th><th>Guest</th><th>Phone</th><th>Party</th><th>Notes</th><th></th></tr></thead><tbody>
+  el.innerHTML = `<table class="datatable"><thead><tr><th>Time</th><th>Guest</th><th>Phone</th><th>Party</th><th>Tables</th><th>Notes</th><th></th></tr></thead><tbody>
     ${rows.map(r => `<tr>
       <td>${to12h(r.time)}</td>
       <td>${escapeHtml(r.guestName)}</td>
       <td>${escapeHtml(r.guestPhone)}</td>
       <td>${escapeHtml(String(r.partySize||''))}</td>
+      <td>${escapeHtml(String(r.tablesUsed || 1))}</td>
       <td>${escapeHtml(r.notes || '—')}</td>
       <td><button class="btn-danger" onclick="cancelReservation('${r.id}')">Cancel</button></td>
     </tr>`).join('')}
@@ -671,6 +847,53 @@ function cancelReservation(id){
   if(!confirm('Cancel this reservation? This frees up the table again.')) return;
   db.collection('rReservations').doc(id).delete();
 }
+
+/* ---- Walk-in / manual reservation ---- */
+document.getElementById('openWalkinBtn').onclick = () => {
+  const form = document.getElementById('walkinForm');
+  const showing = form.style.display === 'block';
+  form.style.display = showing ? 'none' : 'block';
+  if(!showing){
+    document.getElementById('wkName').value = '';
+    document.getElementById('wkPhone').value = '';
+    document.getElementById('wkParty').value = 2;
+    document.getElementById('wkTables').value = 1;
+    document.getElementById('wkNotes').value = '';
+    const now = new Date();
+    document.getElementById('wkTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(Math.round(now.getMinutes()/5)*5 % 60).padStart(2,'0')}`;
+    document.getElementById('walkinMsg').textContent = '';
+  }
+};
+document.getElementById('cancelWalkinBtn').onclick = () => {
+  document.getElementById('walkinForm').style.display = 'none';
+};
+document.getElementById('saveWalkinBtn').onclick = async () => {
+  const name = document.getElementById('wkName').value.trim() || 'Walk-in';
+  const phone = document.getElementById('wkPhone').value.trim();
+  const partySize = Number(document.getElementById('wkParty').value) || 1;
+  const time = document.getElementById('wkTime').value;
+  const tablesUsed = Number(document.getElementById('wkTables').value) || 1;
+  const notes = document.getElementById('wkNotes').value.trim();
+  const date = document.getElementById('bkDateFilter').value || todayStr();
+  const msg = document.getElementById('walkinMsg');
+  if(!time){ msg.textContent = 'Pick a time.'; msg.className = 'msg err'; return; }
+  const btn = document.getElementById('saveWalkinBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await db.collection('rReservations').add({
+      partySize, date, time,
+      guestName: name, guestPhone: phone, notes,
+      tablesUsed,
+      walkIn: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('walkinForm').style.display = 'none';
+  }catch(err){
+    msg.textContent = err.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Add reservation';
+  }
+};
 
 /* ---- Menu (admin) ---- */
 (function initItemCategorySelect(){
@@ -770,27 +993,38 @@ function loadHoursTab(){
   });
 
   el.querySelectorAll('.hr-save').forEach(btn => {
-    btn.onclick = () => {
-      const row = btn.closest('.hours-row');
-      const dow = row.dataset.dow;
-      const open = row.querySelector('.hr-open').value;
-      const close = row.querySelector('.hr-close').value;
-      const slotMinutes = Number(row.querySelector('.hr-slot').value);
-      const closed = row.querySelector('.hr-closed').checked;
-      const msg = document.getElementById('hoursMsg');
-      if(!slotMinutes || slotMinutes <= 0){
-        msg.textContent = 'Enter a valid number of minutes (e.g. 30, 120 for 2 hrs, 180 for 3 hrs).';
-        msg.className = 'msg err';
-        return;
-      }
-      db.collection('rHours').doc(dow).set({ open, close, slotMinutes, closed })
-        .then(() => { msg.textContent = WEEKDAY_NAMES[dow] + ' hours saved.'; msg.className = 'msg ok'; })
-        .catch(err => { msg.textContent = err.message; msg.className = 'msg err'; });
-    };
+    btn.onclick = () => saveHoursRow(btn.closest('.hours-row'));
   });
 
   loadBlockedDates();
 }
+function saveHoursRow(row){
+  const dow = row.dataset.dow;
+  const open = row.querySelector('.hr-open').value;
+  const close = row.querySelector('.hr-close').value;
+  const slotMinutes = Number(row.querySelector('.hr-slot').value);
+  const closed = row.querySelector('.hr-closed').checked;
+  const msg = document.getElementById('hoursMsg');
+  if(!closed && (!slotMinutes || slotMinutes <= 0)){
+    msg.textContent = `Enter a valid number of minutes for ${WEEKDAY_NAMES[dow]} (e.g. 30, 120 for 2 hrs, 180 for 3 hrs).`;
+    msg.className = 'msg err';
+    return Promise.reject();
+  }
+  return db.collection('rHours').doc(dow).set({ open, close, slotMinutes: slotMinutes || 30, closed })
+    .then(() => { msg.textContent = WEEKDAY_NAMES[dow] + ' hours saved.'; msg.className = 'msg ok'; })
+    .catch(err => { msg.textContent = err.message; msg.className = 'msg err'; throw err; });
+}
+document.getElementById('saveAllHoursBtn').onclick = async () => {
+  const msg = document.getElementById('hoursMsg');
+  const rows = document.querySelectorAll('#hoursList .hours-row');
+  try{
+    await Promise.all(Array.from(rows).map(row => saveHoursRow(row)));
+    msg.textContent = 'All days saved.'; msg.className = 'msg ok';
+  }catch(err){
+    msg.textContent = 'Some days had an issue — check the number of minutes on each row.';
+    msg.className = 'msg err';
+  }
+};
 
 document.getElementById('saveTablesBtn').onclick = async () => {
   const n = Number(document.getElementById('totalTablesInput').value);
@@ -825,17 +1059,38 @@ function removeBlockedDate(dateStr){
   db.collection('rBlockedDates').doc(dateStr).delete();
 }
 
-/* ---- Settings (name / email / logo / availability toggle) ---- */
+/* ---- Settings (name / email / logo / background / social / availability toggle) ---- */
 document.getElementById('saveSettingsBtn').onclick = async () => {
   const name = document.getElementById('settingsName').value.trim();
   const tagline = document.getElementById('settingsTagline').value.trim();
   const email = document.getElementById('settingsEmail').value.trim();
   const phone = document.getElementById('settingsPhone').value.trim();
-  const logoUrl = document.getElementById('settingsLogoUrl').value.trim();
+  const address = document.getElementById('settingsAddress').value.trim();
   const msg = document.getElementById('settingsMsg');
   if(!name){ msg.textContent = 'Enter a restaurant name.'; msg.className = 'msg err'; return; }
   try{
-    await db.collection('rSettings').doc('main').set({ name, tagline, email, phone, logoUrl }, { merge: true });
+    await db.collection('rSettings').doc('main').set({ name, tagline, email, phone, address }, { merge: true });
+    msg.textContent = 'Saved.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+
+document.getElementById('saveSettingsBtn2').onclick = async () => {
+  const logoUrl = document.getElementById('settingsLogoUrl').value.trim();
+  const heroBgUrl = document.getElementById('settingsHeroBgUrl').value.trim();
+  const msg = document.getElementById('settingsMsg2');
+  try{
+    await db.collection('rSettings').doc('main').set({ logoUrl, heroBgUrl }, { merge: true });
+    msg.textContent = 'Saved.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+
+document.getElementById('saveSettingsBtn3').onclick = async () => {
+  const facebookUrl = document.getElementById('settingsFacebook').value.trim();
+  const instagramUrl = document.getElementById('settingsInstagram').value.trim();
+  const whatsappNumber = document.getElementById('settingsWhatsapp').value.trim();
+  const msg = document.getElementById('settingsMsg3');
+  try{
+    await db.collection('rSettings').doc('main').set({ facebookUrl, instagramUrl, whatsappNumber }, { merge: true });
     msg.textContent = 'Saved.'; msg.className = 'msg ok';
   }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
 };
@@ -845,6 +1100,45 @@ document.getElementById('showAvailabilityToggle').onchange = async (e) => {
     await db.collection('rSettings').doc('main').set({ showAvailability: e.target.checked }, { merge: true });
   }catch(err){ alert('Could not update: ' + err.message); e.target.checked = !e.target.checked; }
 };
+
+/* ---- CallMeBot WhatsApp alerts ---- */
+document.getElementById('saveCallmebotBtn').onclick = async () => {
+  const enabled = document.getElementById('callmebotEnabled').checked;
+  const phone = document.getElementById('callmebotPhone').value.trim();
+  const apikey = document.getElementById('callmebotApikey').value.trim();
+  const msg = document.getElementById('callmebotMsg');
+  if(enabled && (!phone || !apikey)){
+    msg.textContent = 'Enter both a phone number and API key to enable alerts.';
+    msg.className = 'msg err';
+    return;
+  }
+  try{
+    await db.collection('rSettings').doc('main').set({ callmebot: { enabled, phone, apikey } }, { merge: true });
+    msg.textContent = 'Saved.'; msg.className = 'msg ok';
+  }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
+};
+document.getElementById('testCallmebotBtn').onclick = async () => {
+  const msg = document.getElementById('callmebotMsg');
+  const phone = document.getElementById('callmebotPhone').value.trim();
+  const apikey = document.getElementById('callmebotApikey').value.trim();
+  if(!phone || !apikey){ msg.textContent = 'Enter phone and API key first.'; msg.className = 'msg err'; return; }
+  msg.textContent = 'Sending…'; msg.className = 'msg';
+  const ok = await sendWhatsappAlert('✅ Test message from your reservations admin panel.', { phone, apikey, enabled:true });
+  msg.textContent = ok ? 'Test message sent — check WhatsApp.' : 'Could not send. Double check your number and API key.';
+  msg.className = ok ? 'msg ok' : 'msg err';
+};
+async function sendWhatsappAlert(text, override){
+  const cfg = override || callmebotSettings;
+  if(!cfg || !cfg.enabled || !cfg.phone || !cfg.apikey) return false;
+  try{
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(cfg.phone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(cfg.apikey)}`;
+    await fetch(url, { mode:'no-cors' });
+    return true;
+  }catch(err){
+    console.warn('CallMeBot alert failed', err);
+    return false;
+  }
+}
 </script>
 </body>
 </html>
