@@ -659,7 +659,7 @@ async function computeAvailableSlots(dateStr, partySize){
     return { closed:false, slots };
   }catch(err){
     console.error('computeAvailableSlots failed', err);
-    return { closed:true, reason:"Couldn't load availability right now — please try again in a moment." };
+    return { closed:true, reason:"Couldn't load availability right now — " + (err && err.message ? err.message : 'unknown error') + " (code: " + (err && err.code ? err.code : 'n/a') + ")" };
   }
 }
 
