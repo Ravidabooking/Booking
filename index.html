@@ -76,6 +76,16 @@
   .menu-card .mdesc{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
   .menu-card .mprice{font-weight:700;color:var(--gold-dark);margin-top:8px;font-size:14px;}
 
+  .menu-page-wrap{position:relative;display:flex;align-items:center;justify-content:center;background:var(--cream-100);border-radius:14px;overflow:hidden;min-height:260px;}
+  #menuPageImg{max-width:100%;max-height:72vh;display:block;border-radius:8px;}
+  .menu-nav-btn{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:none;background:rgba(59,13,20,.75);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:2;}
+  .menu-nav-btn:hover{background:var(--wine-900);}
+  .menu-nav-btn:disabled{opacity:.3;cursor:not-allowed;}
+  #menuPrevBtn{left:10px;}
+  #menuNextBtn{right:10px;}
+  .menu-page-indicator{text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:10px;font-weight:600;}
+  @media(max-width:600px){ .menu-nav-btn{width:36px;height:36px;font-size:18px;} }
+
   .party-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:6px;}
   .party-btn{padding:12px 8px;border-radius:8px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--wine-900);}
   .party-btn.selected{background:var(--wine-700);border-color:var(--wine-700);color:#fff;}
@@ -193,8 +203,15 @@
   <section id="menu">
     <div class="card">
       <h2 class="section-title">Menu</h2>
-      <p class="section-sub">A taste of what we serve.</p>
-      <div id="menuGrid"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+      <p class="section-sub">Browse our menu.</p>
+      <div id="menuViewer">
+        <div class="menu-page-wrap">
+          <button id="menuPrevBtn" class="menu-nav-btn" aria-label="Previous page">‹</button>
+          <img id="menuPageImg" src="" alt="Menu page">
+          <button id="menuNextBtn" class="menu-nav-btn" aria-label="Next page">›</button>
+        </div>
+        <div id="menuPageIndicator" class="menu-page-indicator"></div>
+      </div>
     </div>
   </section>
 
@@ -328,16 +345,16 @@
     <!-- MENU -->
     <div id="admtab-menu" class="admtabpanel" style="display:none;">
       <div class="panel">
-        <div class="panel-head"><h2>Menu items</h2></div>
-        <div id="menuAdminList"></div>
-        <div class="panel-head" style="margin-top:16px;"><h2>Add a new menu item</h2></div>
-        <div class="field"><label>Name</label><input id="newItemName" placeholder="e.g. Grilled Sea Bass"></div>
-        <div class="field"><label>Category</label>
-          <select id="newItemCategory"></select>
+        <div class="panel-head"><h2>Menu pages (photos)</h2></div>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-6px;margin-bottom:14px;">
+          Take a photo of each menu page, upload it to GitHub the same way as your logo (Add file → Upload files → copy the
+          <strong>raw</strong> image URL), then paste each page's URL below in order. Guests flip through pages using arrows.
+        </p>
+        <div id="menuPagesAdminList"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <input id="newMenuPageUrl" placeholder="https://raw.githubusercontent.com/you/repo/main/menu-page-1.jpg" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;">
+          <button class="btn-ghost-dark" id="addMenuPageBtn">+ Add page</button>
         </div>
-        <div class="field"><label>Description (optional)</label><input id="newItemDesc" placeholder="Short description"></div>
-        <div class="field"><label>Price</label><input id="newItemPrice" placeholder="e.g. 350 EGP"></div>
-        <button class="btn-ghost-dark" id="addItemBtn">+ Add item</button>
         <div class="msg" id="menuMsg"></div>
       </div>
     </div>
@@ -450,22 +467,16 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 const WEEKDAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const CATEGORIES = [
-  {key:'starters', label:'Starters'},
-  {key:'mains', label:'Mains'},
-  {key:'desserts', label:'Desserts'},
-  {key:'drinks', label:'Drinks & Cocktails'},
-  {key:'specials', label:"Chef's Specials"}
-];
 
-let menuItems = [];
-let allMenuForAdmin = [];
+let menuPages = [];
+let currentMenuPageIndex = 0;
 let selectedParty = null;
 let selectedSlot = null;
 let currentAdminUser = null;
 let totalTables = 10;
 let showAvailability = true;
 let callmebotSettings = { enabled:false, phone:'', apikey:'' };
+let reservationsCache = {};
 
 function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -583,69 +594,91 @@ db.collection('rSettings').doc('main').onSnapshot(doc => {
   if(selectedParty){ onDateOrPartyChange(); } // re-render slots if availability display setting changed
 });
 
-/* ---------------- MENU (public) ---------------- */
-db.collection('rMenu').onSnapshot(snap => {
-  allMenuForAdmin = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-  menuItems = allMenuForAdmin.filter(m => m.active !== false);
-  renderMenuOverview();
-  if(currentAdminUser) renderMenuAdminList(allMenuForAdmin);
+/* ---------------- MENU (public photo pages) ---------------- */
+db.collection('rMenu').doc('pages').onSnapshot(doc => {
+  menuPages = (doc.exists && Array.isArray(doc.data().urls)) ? doc.data().urls : [];
+  if(currentMenuPageIndex >= menuPages.length) currentMenuPageIndex = Math.max(0, menuPages.length - 1);
+  renderMenuViewer();
+  if(currentAdminUser) renderMenuPagesAdminList();
 });
 
-function renderMenuOverview(){
-  const el = document.getElementById('menuGrid');
-  if(menuItems.length === 0){ el.innerHTML = '<div class="empty-state">Menu coming soon.</div>'; return; }
-  const groups = CATEGORIES.map(c => {
-    const list = menuItems.filter(m => m.category === c.key);
-    if(list.length === 0) return '';
-    return `<div style="margin-top:14px;">
-      <div style="font-weight:700;color:var(--wine-900);margin-bottom:8px;">${escapeHtml(c.label)}</div>
-      <div class="menu-grid">
-        ${list.map(m => `<div class="menu-card">
-          <div class="mname">${escapeHtml(m.name)}</div>
-          ${m.description ? `<div class="mdesc">${escapeHtml(m.description)}</div>` : ''}
-          ${m.price ? `<div class="mprice">${escapeHtml(m.price)}</div>` : ''}
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
-  el.innerHTML = groups || '<div class="empty-state">Menu coming soon.</div>';
+function renderMenuViewer(){
+  const img = document.getElementById('menuPageImg');
+  const wrap = document.querySelector('.menu-page-wrap');
+  const indicator = document.getElementById('menuPageIndicator');
+  const prevBtn = document.getElementById('menuPrevBtn');
+  const nextBtn = document.getElementById('menuNextBtn');
+  if(menuPages.length === 0){
+    wrap.style.display = 'none';
+    indicator.innerHTML = '<div class="empty-state">Menu coming soon.</div>';
+    return;
+  }
+  wrap.style.display = 'flex';
+  img.src = menuPages[currentMenuPageIndex];
+  indicator.textContent = `Page ${currentMenuPageIndex + 1} of ${menuPages.length}`;
+  prevBtn.disabled = currentMenuPageIndex === 0;
+  nextBtn.disabled = currentMenuPageIndex === menuPages.length - 1;
+  prevBtn.style.display = menuPages.length > 1 ? 'flex' : 'none';
+  nextBtn.style.display = menuPages.length > 1 ? 'flex' : 'none';
 }
+document.getElementById('menuPrevBtn').onclick = () => {
+  if(currentMenuPageIndex > 0){ currentMenuPageIndex--; renderMenuViewer(); }
+};
+document.getElementById('menuNextBtn').onclick = () => {
+  if(currentMenuPageIndex < menuPages.length - 1){ currentMenuPageIndex++; renderMenuViewer(); }
+};
 
 /* ---------------- SLOT COMPUTATION (with table availability) ---------------- */
 async function computeAvailableSlots(dateStr, partySize){
-  const dow = new Date(dateStr+'T00:00:00').getDay();
-  const [hoursDoc, blockedDoc] = await Promise.all([
-    db.collection('rHours').doc(String(dow)).get(),
-    db.collection('rBlockedDates').doc(dateStr).get()
-  ]);
-  if(blockedDoc.exists) return { closed:true, reason:'We are closed on this date.' };
-  if(!hoursDoc.exists || hoursDoc.data().closed) return { closed:true, reason:'We are closed this day of the week.' };
-  const { open, close, slotMinutes } = hoursDoc.data();
-  const step = slotMinutes || 30;
-  const openM = timeToMinutes(open);
-  let closeM = timeToMinutes(close);
-  if(closeM <= openM) closeM += 24 * 60; // closing time is after midnight (e.g. open 18:00, close 02:00)
-  let times = [];
-  for(let t = openM; t < closeM; t += step){ times.push(minutesToTime(t % (24*60))); }
-  if(dateStr === todayStr()){
-    const now = new Date();
-    const nowM = now.getHours()*60 + now.getMinutes();
-    times = times.filter(s => timeToMinutes(s) > nowM + 15);
+  try{
+    const dow = new Date(dateStr+'T00:00:00').getDay();
+    const [hoursDoc, blockedDoc] = await Promise.all([
+      db.collection('rHours').doc(String(dow)).get(),
+      db.collection('rBlockedDates').doc(dateStr).get()
+    ]);
+    if(blockedDoc.exists) return { closed:true, reason:'We are closed on this date.' };
+    if(!hoursDoc.exists || hoursDoc.data().closed) return { closed:true, reason:'We are closed this day of the week.' };
+    const { open, close, slotMinutes } = hoursDoc.data();
+    const step = slotMinutes || 30;
+    const openM = timeToMinutes(open);
+    let closeM = timeToMinutes(close);
+    if(closeM <= openM) closeM += 24 * 60; // closing time is after midnight (e.g. open 18:00, close 02:00)
+    let times = [];
+    for(let t = openM; t < closeM; t += step){ times.push(minutesToTime(t % (24*60))); }
+    if(dateStr === todayStr()){
+      const now = new Date();
+      const nowM = now.getHours()*60 + now.getMinutes();
+      times = times.filter(s => timeToMinutes(s) > nowM + 15);
+    }
+    const countByTime = await getUsageCountsForDate(dateStr);
+    const slots = times.map(t => {
+      const used = countByTime[t] || 0;
+      const remaining = Math.max(0, totalTables - used);
+      return { time:t, remaining, full: remaining <= 0 };
+    });
+    return { closed:false, slots };
+  }catch(err){
+    console.error('computeAvailableSlots failed', err);
+    return { closed:true, reason:"Couldn't load availability right now — please try again in a moment." };
   }
-  const bookedSnap = await db.collection('rReservations').where('date','==',dateStr).get();
+}
+
+/* Public-safe aggregate table usage, keyed by "date_time" doc IDs (e.g. "2026-08-24_18:30").
+   Guests can read/increment this counter without ever reading other guests' reservation details. */
+function usageDocId(dateStr, time){ return `${dateStr}_${time}`; }
+async function getUsageCountsForDate(dateStr){
+  const prefix = dateStr + '_';
+  const snap = await db.collection('rTableUsage')
+    .where(firebase.firestore.FieldPath.documentId(), '>=', prefix)
+    .where(firebase.firestore.FieldPath.documentId(), '<', prefix + '\uf8ff')
+    .get();
   const countByTime = {};
-  bookedSnap.docs.forEach(d => {
-    const data = d.data();
-    const t = data.time;
-    const used = Number(data.tablesUsed) || 1;
-    countByTime[t] = (countByTime[t]||0) + used;
-  });
-  const slots = times.map(t => {
-    const used = countByTime[t] || 0;
-    const remaining = Math.max(0, totalTables - used);
-    return { time:t, remaining, full: remaining <= 0 };
-  });
-  return { closed:false, slots };
+  snap.docs.forEach(d => { countByTime[d.id.slice(prefix.length)] = d.data().count || 0; });
+  return countByTime;
+}
+async function bumpUsage(dateStr, time, delta){
+  const ref = db.collection('rTableUsage').doc(usageDocId(dateStr, time));
+  await ref.set({ count: firebase.firestore.FieldValue.increment(delta) }, { merge: true });
 }
 
 async function onDateOrPartyChange(){
@@ -655,7 +688,8 @@ async function onDateOrPartyChange(){
   document.getElementById('detailsFields').style.display = 'none';
   document.getElementById('slotsArea').innerHTML = '<div class="loading"><div class="spinner"></div>Checking availability…</div>';
   selectedSlot = null;
-  const result = await computeAvailableSlots(dateStr, selectedParty);
+  const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ closed:true, reason:"This is taking longer than expected — please check your connection and try again." }), 10000));
+  const result = await Promise.race([computeAvailableSlots(dateStr, selectedParty), timeoutPromise]);
   const el = document.getElementById('slotsArea');
   if(result.closed){
     el.innerHTML = `<div class="empty-state">${escapeHtml(result.reason)}</div>`;
@@ -693,9 +727,9 @@ document.getElementById('submitBookingBtn').onclick = async () => {
   const btn = document.getElementById('submitBookingBtn');
   btn.disabled = true; btn.textContent = 'Booking…';
   try{
-    // re-check table availability right before booking
-    const clashSnap = await db.collection('rReservations').where('date','==',date).where('time','==',selectedSlot).get();
-    const usedNow = clashSnap.docs.reduce((sum, d) => sum + (Number(d.data().tablesUsed) || 1), 0);
+    // re-check table availability right before booking, using the public-safe usage counter
+    const usageDoc = await db.collection('rTableUsage').doc(usageDocId(date, selectedSlot)).get();
+    const usedNow = (usageDoc.exists && usageDoc.data().count) || 0;
     if(usedNow >= totalTables){
       msg.textContent = 'Sorry, that time just filled up. Please pick another.';
       msg.className = 'msg err';
@@ -709,6 +743,7 @@ document.getElementById('submitBookingBtn').onclick = async () => {
       tablesUsed: 1,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    await bumpUsage(date, selectedSlot, 1);
     sendWhatsappAlert(`🔔 New reservation: ${name} (${phone}), party of ${selectedParty}, ${fmtDateHuman(date)} at ${to12h(selectedSlot)}.${notes ? ' Notes: ' + notes : ''}`);
     document.getElementById('bookingFlow').style.display = 'none';
     document.getElementById('bookingConfirm').style.display = 'block';
@@ -803,7 +838,7 @@ function switchAdminTab(tab){
   document.getElementById('admtab-' + tab).style.display = 'block';
   document.querySelectorAll('#adminTabsNav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   if(tab === 'reservations') loadReservationsForDate(document.getElementById('bkDateFilter').value || todayStr());
-  if(tab === 'menu') renderMenuAdminList(allMenuForAdmin);
+  if(tab === 'menu') renderMenuPagesAdminList();
 }
 
 /* ---- Reservations (admin) ---- */
@@ -829,6 +864,8 @@ function loadReservationsForDate(dateStr){
   }, err => { el.innerHTML = `<div class="empty-state">Couldn't load reservations (${escapeHtml(err.message)}).</div>`; });
 }
 function renderReservationsList(rows, dateStr){
+  reservationsCache = {};
+  rows.forEach(r => { reservationsCache[r.id] = r; });
   const el = document.getElementById('bookingsList');
   if(rows.length === 0){ el.innerHTML = `<div class="empty-state">No reservations for ${escapeHtml(fmtDateHuman(dateStr))}.</div>`; return; }
   el.innerHTML = `<table class="datatable"><thead><tr><th>Time</th><th>Guest</th><th>Phone</th><th>Party</th><th>Tables</th><th>Notes</th><th></th></tr></thead><tbody>
@@ -845,7 +882,10 @@ function renderReservationsList(rows, dateStr){
 }
 function cancelReservation(id){
   if(!confirm('Cancel this reservation? This frees up the table again.')) return;
-  db.collection('rReservations').doc(id).delete();
+  const r = reservationsCache[id];
+  db.collection('rReservations').doc(id).delete().then(() => {
+    if(r) bumpUsage(r.date, r.time, -(Number(r.tablesUsed) || 1));
+  });
 }
 
 /* ---- Walk-in / manual reservation ---- */
@@ -887,6 +927,7 @@ document.getElementById('saveWalkinBtn').onclick = async () => {
       walkIn: true,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    await bumpUsage(date, time, tablesUsed);
     document.getElementById('walkinForm').style.display = 'none';
   }catch(err){
     msg.textContent = err.message; msg.className = 'msg err';
@@ -895,53 +936,50 @@ document.getElementById('saveWalkinBtn').onclick = async () => {
   }
 };
 
-/* ---- Menu (admin) ---- */
-(function initItemCategorySelect(){
-  const sel = document.getElementById('newItemCategory');
-  if(sel) sel.innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${escapeHtml(c.label)}</option>`).join('');
-})();
-
-function renderMenuAdminList(all){
-  const el = document.getElementById('menuAdminList');
+/* ---- Menu pages (admin) ---- */
+function renderMenuPagesAdminList(){
+  const el = document.getElementById('menuPagesAdminList');
   if(!el) return;
-  if(all.length === 0){ el.innerHTML = '<div class="empty-state">No menu items yet.</div>'; return; }
-  el.innerHTML = all.map(m => `
-    <div class="row-item" style="flex-direction:column;align-items:stretch;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-        <input value="${escapeHtml(m.name)}" onchange="updateMenuItem('${m.id}','name',this.value)" style="flex:2;min-width:140px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
-        <select onchange="updateMenuItem('${m.id}','category',this.value)" style="flex:1;min-width:150px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
-          ${CATEGORIES.map(c => `<option value="${c.key}" ${m.category===c.key?'selected':''}>${escapeHtml(c.label)}</option>`).join('')}
-        </select>
-        <input value="${escapeHtml(m.price||'')}" onchange="updateMenuItem('${m.id}','price',this.value)" placeholder="price" style="flex:1;min-width:100px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+  if(menuPages.length === 0){ el.innerHTML = '<div class="empty-state">No menu pages yet — add one below.</div>'; return; }
+  el.innerHTML = menuPages.map((url, i) => `
+    <div class="row-item">
+      <img src="${escapeHtml(url)}" style="width:52px;height:68px;object-fit:cover;border-radius:6px;border:1px solid var(--line);flex-shrink:0;" onerror="this.style.opacity='0.25'">
+      <div class="rmain">
+        <div class="t1">Page ${i + 1}</div>
+        <div class="t2" style="word-break:break-all;">${escapeHtml(url)}</div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;">
-        <input value="${escapeHtml(m.description||'')}" onchange="updateMenuItem('${m.id}','description',this.value)" placeholder="description (optional)" style="flex:2;min-width:180px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${m.active!==false?'checked':''} onchange="updateMenuItem('${m.id}','active',this.checked)"> Active</label>
-        <button class="btn-danger" onclick="deleteMenuItem('${m.id}')">Remove</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-ghost-dark" ${i===0?'disabled':''} onclick="moveMenuPage(${i},-1)">↑</button>
+        <button class="btn-ghost-dark" ${i===menuPages.length-1?'disabled':''} onclick="moveMenuPage(${i},1)">↓</button>
+        <button class="btn-danger" onclick="removeMenuPage(${i})">Remove</button>
       </div>
     </div>
   `).join('');
 }
-function updateMenuItem(id, field, value){
-  db.collection('rMenu').doc(id).update({ [field]: value }).catch(err => alert('Could not update: ' + err.message));
+function saveMenuPages(){
+  return db.collection('rMenu').doc('pages').set({ urls: menuPages });
 }
-function deleteMenuItem(id){
-  if(!confirm('Remove this menu item?')) return;
-  db.collection('rMenu').doc(id).delete();
+function moveMenuPage(i, delta){
+  const j = i + delta;
+  if(j < 0 || j >= menuPages.length) return;
+  [menuPages[i], menuPages[j]] = [menuPages[j], menuPages[i]];
+  saveMenuPages();
 }
-document.getElementById('addItemBtn').onclick = async () => {
-  const name = document.getElementById('newItemName').value.trim();
-  const category = document.getElementById('newItemCategory').value;
-  const description = document.getElementById('newItemDesc').value.trim();
-  const price = document.getElementById('newItemPrice').value.trim();
+function removeMenuPage(i){
+  if(!confirm('Remove this menu page?')) return;
+  menuPages.splice(i, 1);
+  saveMenuPages();
+}
+document.getElementById('addMenuPageBtn').onclick = async () => {
+  const input = document.getElementById('newMenuPageUrl');
+  const url = input.value.trim();
   const msg = document.getElementById('menuMsg');
-  if(!name){ msg.textContent = 'Enter an item name.'; msg.className = 'msg err'; return; }
+  if(!url){ msg.textContent = 'Paste an image URL first.'; msg.className = 'msg err'; return; }
   try{
-    await db.collection('rMenu').add({ name, category, description, price, active: true });
-    document.getElementById('newItemName').value = '';
-    document.getElementById('newItemDesc').value = '';
-    document.getElementById('newItemPrice').value = '';
-    msg.textContent = 'Added.'; msg.className = 'msg ok';
+    menuPages.push(url);
+    await saveMenuPages();
+    input.value = '';
+    msg.textContent = 'Page added.'; msg.className = 'msg ok';
   }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
 };
 
